@@ -200,4 +200,42 @@ export default function App () {
       </div>
     );
   }
+
+  if (screen === 'game') {
+    const currentCard = cards[currentCardIndex] || [];
+    return(
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex flex-col items-center justify-center p-4">
+        <div className='mb-4 text-white text-lg'>
+          Card {currentCardIndex + 1} of {cards.length}
+        </div>
+
+        <div className="bg-white rounded-3xl p-12 shadow-2xl min-w-[400px] min-h-[300px] flex items-center justify-center">
+          <div className="text-center space-y-6">
+            {currentCard.map((word, idx) => (
+              <div key={idx} className="text-5xl font-bold text-gray-800">
+                {word}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex gap-4 mt-8">
+          <button
+            onClick={prevCard}
+            disabled={currentCardIndex === 0}
+            className="bg-white text-purple-600 p-4 rounded-full hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronLeft size={32} />
+          </button>
+          <button
+            onClick={nextCard}
+            disabled={currentCardIndex === cards.length - 1}
+            className="bg-white text-purple-600 p-4 rounded-full hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <ChevronRight size={32} />
+          </button>
+        </div>
+      </div>
+    )
+  }
 }
