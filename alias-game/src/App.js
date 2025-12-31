@@ -71,5 +71,32 @@ export default function App () {
     setCards(newCards);
     setCurrentCardIndex(0);
     setScreen('game');
-  }
+  };
+
+  const nextCard = () => {
+    if(currentCardIndex < cards.length - 1) {
+      setCurrentCardIndex(currentCardIndex + 1);
+    }
+  };
+
+  const prevCard = () => {
+    if(currentCardIndex > 0) {
+      setCurrentCardIndex(currentCardIndex - 1);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if(screen == 'game') {
+        if(e.key == 'ArrowRight') {
+          nextCard();
+        }
+        if(e.key == 'ArrowLeft') {
+          prevCard();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [screen, currentCardIndex, cards.length]);
 }
