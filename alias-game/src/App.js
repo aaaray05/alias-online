@@ -42,6 +42,7 @@ export default function App () {
   const [wordsPerCard, setWordsPerCard] = useState(1);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [wordSource, setWordSource] = useState('default');
 
   const shuffleAray = (array) => {
     const newArray = [...array];
@@ -87,18 +88,18 @@ export default function App () {
 
   useEffect(() => {
     const handleKeyPress = (e) => {
-      if(screen = 'game') {
-        if(e.key === 'ArrowRight') {
-          nextCard();
+      if (screen === 'game') {
+        if (e.key === 'ArrowRight') {
+          setCurrentCardIndex(prev => prev < cards.length - 1 ? prev + 1 : prev);
         }
-        if(e.key === 'ArrowLeft') {
-          prevCard();
+        if (e.key === 'ArrowLeft') {
+          setCurrentCardIndex(prev => prev > 0 ? prev - 1 : prev);
         }
       }
     };
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [screen, currentCardIndex, cards.length]);
+  }, [screen, cards.length]);
 
   if(screen === 'start') {
     return (
@@ -148,25 +149,30 @@ export default function App () {
                 <label className="flex items-center">
                   <input
                     type="radio"
+                    name="wordSource"
                     className="mr-2"
+                    checked={wordSource === 'default'}
+                    onChange={() => setWordSource('default')}
                   />
-                  Default words (no setup needed)
+                  Default words
                 </label>
                 <label className="flex items-center">
                   <input
                     type="radio"
-                    checked={manualWords !== ''}
+                    name="wordSource"
+                    className="mr-2"
+                    checked={wordSource === 'manual'}
                     onChange={() => {
+                      setWordSource('manual');
                       if (!manualWords) setManualWords('cat, dog, house');
                     }}
-                    className="mr-2"
                   />
                   Manual entry
                 </label>
               </div>
             </div>
 
-            {manualWords !== '' && (
+            {wordSource === 'manual' && (
               <div>
                 <label className="block text-gray-700 font-semibold mb-2">
                   Enter words (comma-separated)
@@ -174,7 +180,7 @@ export default function App () {
                 <textarea
                   value={manualWords}
                   onChange={(e) => setManualWords(e.target.value)}
-                  placeholder="cat, dog, house, tree..."
+                  placeholder="Leave empty for default words, or add your own: "
                   className="w-full border rounded-lg p-3 h-32"
                 />
               </div>
