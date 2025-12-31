@@ -235,6 +235,17 @@ export default function App () {
             <ChevronRight size={32} />
           </button>
         </div>
+
+        <button
+          onClick={() => {
+            setScreen('start');
+            setCards([]);
+            setCurrentCardIndex(0);
+          }}
+          className="mt-8 text-white underline hover:no-underline"
+        >
+          End Game
+        </button>
       </div>
     )
   }
