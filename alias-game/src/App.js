@@ -41,7 +41,8 @@ export default function App () {
   const [manualWords, setManualWords] = useState('');
   const [cards, setCards] = useState([]);
   const [wordsPerCard, setWordsPerCard] = useState(1);
-  
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+
   const shuffleAray = (array) => {
     const newArray = [...array];
     for(let i = newArray.length - 1; i > 0; i--) {
@@ -51,22 +52,24 @@ export default function App () {
     return newArray;
   };
 
-  // const startGame = async () => {
-  //   let wordList = [];
-  //   if(manualWords.trim()) {
-  //     wordList = manualWords.split(',').map(w => w.trim()).filter(w => w);
-  //     if(wordList.length == 0) {
-  //       alert("Please enter at least one word");
-  //       return;
-  //     }
-  //   } else {
-  //     wordList = shuffleAray(defaultWords);
-  //   }
+  const startGame = async () => {
+    let wordList = [];
+    if(manualWords.trim()) {
+      wordList = manualWords.split(',').map(w => w.trim()).filter(w => w);
+      if(wordList.length == 0) {
+        alert("Please enter at least one word");
+        return;
+      }
+    } else {
+      wordList = shuffleAray(defaultWords);
+    }
     
-  //   const newCards = [];
-  //   for(let i = 0; i < wordList.legnth; i += wordsPerCard) {
-
-  //   }
-  // }
-
+    const newCards = [];
+    for(let i = 0; i < wordList.legnth; i += wordsPerCard) {
+      newCards.push(wordList.slice(i, i + wordsPerCard));
+    }
+    setCards(newCards);
+    setCurrentCardIndex(0);
+    setScreen('game');
+  }
 }
