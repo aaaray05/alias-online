@@ -1,7 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import { ChevronRight, ChevronLeft, Play } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronRight, Play, SkipForward, Pause, RotateCcw } from 'lucide-react';
 
-export default function App () {
+export default function App() {
   const defaultWords = [
     // Животные (20)
     'слон', 'пингвин', 'крокодил', 'бабочка', 'медуза',
@@ -33,20 +33,50 @@ export default function App () {
     
     // Природа (10)
     'водопад', 'радуга', 'торнадо', 'лавина', 'ураган',
-    'землетрясение', 'молния', 'метель', 'цунами', 'затмение'
+    'землетрясение', 'молния', 'метель', 'цунами', 'затмение',
+    
+    // Животные 2 (20)
+    'верблюд', 'страус', 'лиса', 'волк', 'медведь',
+    'тигр', 'лев', 'змея', 'черепаха', 'лягушка',
+    'сова', 'орёл', 'попугай', 'краб', 'акула',
+    'кит', 'белка', 'енот', 'панда', 'коала',
+    
+    // Предметы 2 (20)
+    'якорь', 'парашют', 'штопор', 'лопата', 'молоток',
+    'пила', 'отвёртка', 'ножницы', 'линейка', 'степлер',
+    'будильник', 'фонарик', 'свеча', 'лампочка', 'вентилятор',
+    'утюг', 'швейная машинка', 'пылесос', 'микрофон', 'наушники',
+    
+    // Еда и напитки (20)
+    'пицца', 'суши', 'бургер', 'торт', 'мороженое',
+    'шоколад', 'конфета', 'печенье', 'хлеб', 'сыр',
+    'яйцо', 'молоко', 'кофе', 'чай', 'сок',
+    'арбуз', 'банан', 'яблоко', 'апельсин', 'виноград',
+    
+    // Транспорт (10)
+    'самолёт', 'вертолёт', 'ракета', 'корабль', 'подводная лодка',
+    'поезд', 'велосипед', 'мотоцикл', 'грузовик', 'такси',
+    
+    // Спорт и игры (10)
+    'футбол', 'баскетбол', 'теннис', 'хоккей', 'бокс',
+    'шахматы', 'карты', 'домино', 'боулинг', 'гольф'
   ];
 
   const [screen, setScreen] = useState('start');
   const [manualWords, setManualWords] = useState('');
   const [cards, setCards] = useState([]);
-  const [wordsPerCard, setWordsPerCard] = useState(1);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [wordSource, setWordSource] = useState('default');
+  const [timerDuration, setTimerDuration] = useState(60);
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [timerRunning, setTimerRunning] = useState(false);
+  const [team1Score, setTeam1Score] = useState(0);
+  const [team2Score, setTeam2Score] = useState(0);
+  const [currentTeam, setCurrentTeam] = useState(1);
 
-  const shuffleAray = (array) => {
+  const shuffleArray = (array) => {
     const newArray = [...array];
-    for(let i = newArray.length - 1; i > 0; i--) {
+    for (let i = newArray.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
     }
@@ -55,66 +85,103 @@ export default function App () {
 
   const startGame = async () => {
     let wordList = [];
-    if(manualWords.trim()) {
+    if (manualWords.trim()) {
       wordList = manualWords.split(',').map(w => w.trim()).filter(w => w);
-      if(wordList.length === 0) {
-        alert("Please enter at least one word");
+      if (wordList.length === 0) {
+        alert('Please enter at least one word');
         return;
       }
     } else {
-      wordList = shuffleAray(defaultWords);
+      wordList = shuffleArray(defaultWords);
     }
-    
-    const newCards = [];
-    for(let i = 0; i < wordList.length; i += wordsPerCard) {
-      newCards.push(wordList.slice(i, i + wordsPerCard));
-    }
-    setCards(newCards);
+
+    setCards(wordList);
     setCurrentCardIndex(0);
+    setTimeLeft(timerDuration);
+    setTimerRunning(false);
     setScreen('game');
   };
 
-  const nextCard = () => {
-    if(currentCardIndex < cards.length - 1) {
-      setCurrentCardIndex(currentCardIndex + 1);
+  const startTimer = () => {
+    setTimerRunning(true);
+  };
+
+  const pauseTimer = () => {
+    setTimerRunning(false);
+  };
+
+  const resetTimer = () => {
+    setTimeLeft(timerDuration);
+    setTimerRunning(false);
+  };
+
+  const correctGuess = () => {
+    if (currentTeam === 1) {
+      setTeam1Score(team1Score + 1);
+    } else {
+      setTeam2Score(team2Score + 1);
+    }
+    removeCurrentWord();
+  };
+
+  const skipWord = () => {
+    removeCurrentWord();
+  };
+
+  const removeCurrentWord = () => {
+    const newCards = [...cards];
+    newCards.splice(currentCardIndex, 1);
+    
+    if (newCards.length === 0) {
+      alert('No more words! Starting a new game.');
+      const wordList = manualWords.trim() 
+        ? manualWords.split(',').map(w => w.trim()).filter(w => w)
+        : shuffleArray(defaultWords);
+      setCards(wordList);
+      setCurrentCardIndex(0);
+    } else {
+      setCards(newCards);
+      if (currentCardIndex >= newCards.length) {
+        setCurrentCardIndex(newCards.length - 1);
+      }
     }
   };
 
-  const prevCard = () => {
-    if(currentCardIndex > 0) {
-      setCurrentCardIndex(currentCardIndex - 1);
-    }
+  const switchTeam = () => {
+    setCurrentTeam(currentTeam === 1 ? 2 : 1);
+    resetTimer();
+    setTimerRunning(false);
   };
 
   useEffect(() => {
-    const handleKeyPress = (e) => {
-      if (screen === 'game') {
-        if (e.key === 'ArrowRight') {
-          setCurrentCardIndex(prev => prev < cards.length - 1 ? prev + 1 : prev);
-        }
-        if (e.key === 'ArrowLeft') {
-          setCurrentCardIndex(prev => prev > 0 ? prev - 1 : prev);
-        }
-      }
-    };
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [screen, cards.length]);
+    let interval;
+    if (timerRunning && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            setTimerRunning(false);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerRunning, timeLeft]);
 
-  if(screen === 'start') {
+  if (screen === 'start') {
     return (
-      <div className='min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-4'>
-        <div className='text-center'>
-          <h1 className="text-6xl font-bold text-white mb-8">Alias</h1>
-          <p className="text-xl text-white mb-12">Word Guessing Game</p>
-          <div className="space-y-4"></div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-4">
+        <div className="text-center">
+          <h1 className="text-6xl font-bold text-white mb-8">Pictionary</h1>
+          <p className="text-xl text-white mb-12">Drawing Game</p>
           <button
-              onClick={() => setScreen('settings')}
-              className="bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-semibold hover:bg-gray-100 transition flex items-center gap-3 mx-auto"
-            >
-              <Play size = {24} />
-              Play
-            </button>
+            onClick={() => setScreen('settings')}
+            className="bg-white text-purple-600 px-12 py-4 rounded-full text-xl font-semibold hover:bg-gray-100 transition flex items-center gap-3 mx-auto"
+          >
+            <Play size={24} />
+            Play
+          </button>
         </div>
       </div>
     );
@@ -129,14 +196,15 @@ export default function App () {
           <div className="space-y-6">
             <div>
               <label className="block text-gray-700 font-semibold mb-2">
-                Words per card: {wordsPerCard}
+                Timer Duration: {timerDuration} seconds
               </label>
               <input
                 type="range"
-                min="1"
-                max="5"
-                value={wordsPerCard}
-                onChange={(e) => setWordsPerCard(parseInt(e.target.value))}
+                min="30"
+                max="120"
+                step="15"
+                value={timerDuration}
+                onChange={(e) => setTimerDuration(parseInt(e.target.value))}
                 className="w-full"
               />
             </div>
@@ -164,7 +232,7 @@ export default function App () {
                     checked={wordSource === 'manual'}
                     onChange={() => {
                       setWordSource('manual');
-                      if (!manualWords) setManualWords('cat, dog, house');
+                      if (!manualWords) setManualWords('кот, собака, дом');
                     }}
                   />
                   Manual entry
@@ -180,7 +248,7 @@ export default function App () {
                 <textarea
                   value={manualWords}
                   onChange={(e) => setManualWords(e.target.value)}
-                  placeholder="Leave empty for default words, or add your own: "
+                  placeholder="кот, собака, дом, дерево..."
                   className="w-full border rounded-lg p-3 h-32"
                 />
               </div>
@@ -195,10 +263,9 @@ export default function App () {
               </button>
               <button
                 onClick={startGame}
-                disabled={loading}
-                className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition disabled:bg-gray-400"
+                className="flex-1 bg-purple-600 text-white py-3 rounded-lg font-semibold hover:bg-purple-700 transition"
               >
-                {loading ? 'Loading...' : 'Start Game'}
+                Start Game
               </button>
             </div>
           </div>
@@ -208,51 +275,124 @@ export default function App () {
   }
 
   if (screen === 'game') {
-    const currentCard = cards[currentCardIndex] || [];
-    return(
+    const currentWord = cards[currentCardIndex] || '';
+    
+    return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex flex-col items-center justify-center p-4">
-        <div className='mb-4 text-white text-lg'>
-          Card {currentCardIndex + 1} of {cards.length}
-        </div>
-
-        <div className="bg-white rounded-3xl p-12 shadow-2xl min-w-[400px] min-h-[300px] flex items-center justify-center">
-          <div className="text-center space-y-6">
-            {currentCard.map((word, idx) => (
-              <div key={idx} className="text-5xl font-bold text-gray-800">
-                {word}
-              </div>
-            ))}
+        {/* Score Board */}
+        <div className="flex gap-8 mb-6">
+          <div className={`text-center p-4 rounded-lg ${currentTeam === 1 ? 'bg-white' : 'bg-white bg-opacity-50'}`}>
+            <div className="text-sm font-semibold text-gray-600">Team 1</div>
+            <div className="text-4xl font-bold text-purple-600">{team1Score}</div>
+          </div>
+          <div className={`text-center p-4 rounded-lg ${currentTeam === 2 ? 'bg-white' : 'bg-white bg-opacity-50'}`}>
+            <div className="text-sm font-semibold text-gray-600">Team 2</div>
+            <div className="text-4xl font-bold text-blue-600">{team2Score}</div>
           </div>
         </div>
 
-        <div className="flex gap-4 mt-8">
+        {/* Timer */}
+        <div className="mb-6">
+          <div className={`text-6xl font-bold ${timeLeft <= 10 ? 'text-red-400' : 'text-white'}`}>
+            {timeLeft}s
+          </div>
+        </div>
+
+        {/* Word Card */}
+        <div className="bg-white rounded-3xl p-12 shadow-2xl min-w-[400px] min-h-[250px] flex items-center justify-center mb-6">
+          <div className="text-center">
+            <div className="text-5xl font-bold text-gray-800">
+              {currentWord}
+            </div>  
+          </div>
+        </div>
+
+        {/* Game Controls */}
+        <div className="flex gap-4 mb-6">
+          {!timerRunning && timeLeft === timerDuration && (
+            <button
+              onClick={startTimer}
+              className="bg-green-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-green-600 transition flex items-center gap-2"
+            >
+              <Play size={24} />
+              Start Timer
+            </button>
+          )}
+          
+          {timerRunning && (
+            <button
+              onClick={pauseTimer}
+              className="bg-yellow-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-yellow-600 transition flex items-center gap-2"
+            >
+              <Pause size={24} />
+              Pause
+            </button>
+          )}
+
+          {!timerRunning && timeLeft < timerDuration && timeLeft > 0 && (
+            <button
+              onClick={startTimer}
+              className="bg-green-500 text-white px-8 py-4 rounded-full font-semibold hover:bg-green-600 transition flex items-center gap-2"
+            >
+              <Play size={24} />
+              Resume
+            </button>
+          )}
+        </div>
+
+        <div className="flex gap-4 mb-6">
           <button
-            onClick={prevCard}
-            disabled={currentCardIndex === 0}
-            className="bg-white text-purple-600 p-4 rounded-full hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={correctGuess}
+            disabled={!timerRunning}
+            className="bg-white text-green-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <ChevronLeft size={32} />
+            <ChevronRight size={24} />
+            Correct!
           </button>
+          
           <button
-            onClick={nextCard}
-            disabled={currentCardIndex === cards.length - 1}
-            className="bg-white text-purple-600 p-4 rounded-full hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            onClick={skipWord}
+            disabled={!timerRunning}
+            className="bg-white text-orange-600 px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
-            <ChevronRight size={32} />
+            <SkipForward size={24} />
+            Skip
           </button>
         </div>
 
-        <button
-          onClick={() => {
-            setScreen('start');
-            setCards([]);
-            setCurrentCardIndex(0);
-          }}
-          className="mt-8 text-white underline hover:no-underline"
-        >
-          End Game
-        </button>
+        {/* Round Controls */}
+        <div className="flex gap-4">
+          <button
+            onClick={resetTimer}
+            className="text-white underline hover:no-underline flex items-center gap-2"
+          >
+            <RotateCcw size={20} />
+            Reset Timer
+          </button>
+          
+          <button
+            onClick={switchTeam}
+            className="bg-white text-purple-600 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition"
+          >
+            Switch to Team {currentTeam === 1 ? 2 : 1}
+          </button>
+          
+          <button
+            onClick={() => {
+              setScreen('start');
+              setCards([]);
+              setCurrentCardIndex(0);
+              setTeam1Score(0);
+              setTeam2Score(0);
+              setCurrentTeam(1);
+              setTimerRunning(false);
+            }}
+            className="text-white underline hover:no-underline"
+          >
+            End Game
+          </button>
+        </div>
       </div>
-    )
+    );
   }
 }
